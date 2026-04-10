@@ -1,0 +1,25 @@
+name: Lighthouse CI Proof of Concept
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  lighthouse-test:
+    name: Run Lighthouse CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Lighthouse CLI
+        run: npm install -g @lhci/cli
+
+      - name: Run Lighthouse on Dummy Website
+        run: lhci autorun --collect.url="https://example.com" --upload.target="temporary-public-storage"
