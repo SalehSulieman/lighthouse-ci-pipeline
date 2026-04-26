@@ -30,17 +30,18 @@ jobs:
           # 1. Find the generated JSON file
           JSON_FILE=$(ls .lighthouseci/lhr-*.json | head -n 1)
 
-          # 2. Extract metrics using jq
-          FCP=$(jq '.audits["first-contentful-paint"].numericValue' $JSON_FILE)
-          LCP=$(jq '.audits["largest-contentful-paint"].numericValue' $JSON_FILE)
+          # 2. Extract metrics (FCP and LCP converted to seconds)
+          FCP=$(jq '.audits["first-contentful-paint"].numericValue / 1000' $JSON_FILE)
+          LCP=$(jq '.audits["largest-contentful-paint"].numericValue / 1000' $JSON_FILE)
           TBT=$(jq '.audits["total-blocking-time"].numericValue' $JSON_FILE)
 
           # 3. PERFORMANCE BUDGET ALERTS
-          # Triggers a warning in GitHub's UI if metrics exceed the limits
-          if [ "$(awk "BEGIN {print ($FCP > 2000)}")" -eq 1 ]; then
-            echo "::warning title=Performance Budget Alert::First Contentful Paint is too slow ($FCP ms). Target is < 2000 ms."
+          # FCP target is < 2.0 seconds
+          if [ "$(awk "BEGIN {print ($FCP > 2.0)}")" -eq 1 ]; then
+            echo "::warning title=Performance Budget Alert::First Contentful Paint is too slow ($FCP s). Target is < 2.0 s."
           fi
           
+          # TBT target is < 200 ms
           if [ "$(awk "BEGIN {print ($TBT > 200)}")" -eq 1 ]; then
             echo "::warning title=Performance Budget Alert::Total Blocking Time is too high ($TBT ms). Target is < 200 ms."
           fi
