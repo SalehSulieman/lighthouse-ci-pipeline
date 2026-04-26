@@ -5,48 +5,58 @@ on:
     branches: [ main ]
 
 jobs:
-      lighthouse-test:
-        name: Run Lighthouse CI & Send Data
-        runs-on: ubuntu-latest
+  lighthouse-test:
+    name: Run Lighthouse CI & Send Data
+    runs-on: ubuntu-latest
 
-        steps:
-          - name: Checkout Code
-            uses: actions/checkout@v4
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-          - name: Setup Node.js
-            uses: actions/setup-node@v4
-            with:
-              node-version: '18'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-          - name: Install Lighthouse CLI
-            run: npm install -g @lhci/cli
+      - name: Install Lighthouse CLI
+        run: npm install -g @lhci/cli
 
-          - name: Run Lighthouse & Save JSON
-            # 'collect' generates the JSON locally instead of uploading just HTML
-            run: lhci collect --url="https://example.com"
+      - name: Run Lighthouse & Save JSON
+        # Runs the test and saves both HTML and JSON locally
+        run: lhci collect --url="https://example.com"
 
-          - name: Extract Data and Send to Backend
-            run: |
-              # 1. Find the generated JSON file
-              JSON_FILE=$(ls .lighthouseci/lhr-*.json | head -n 1)
+      - name: Extract Data, Check Budget, and Send to Backend
+        run: |
+          # 1. Find the generated JSON file
+          JSON_FILE=$(ls .lighthouseci/lhr-*.json | head -n 1)
 
-              # 2. Extract metrics using jq
-              FCP=$(jq '.audits["first-contentful-paint"].numericValue' $JSON_FILE)
-              LCP=$(jq '.audits["largest-contentful-paint"].numericValue' $JSON_FILE)
-              TBT=$(jq '.audits["total-blocking-time"].numericValue' $JSON_FILE)
+          # 2. Extract metrics using jq
+          FCP=$(jq '.audits["first-contentful-paint"].numericValue' $JSON_FILE)
+          LCP=$(jq '.audits["largest-contentful-paint"].numericValue' $JSON_FILE)
+          TBT=$(jq '.audits["total-blocking-time"].numericValue' $JSON_FILE)
 
-              # 3. Get GitHub metadata
-              COMMIT_HASH=${{ github.sha }}
-              BRANCH_NAME=${{ github.ref_name }}
+          # 3. PERFORMANCE BUDGET ALERTS
+          # Triggers a warning in GitHub's UI if metrics exceed the limits
+          if [ "$(awk "BEGIN {print ($FCP > 2000)}")" -eq 1 ]; then
+            echo "::warning title=Performance Budget Alert::First Contentful Paint is too slow ($FCP ms). Target is < 2000 ms."
+          fi
+          
+          if [ "$(awk "BEGIN {print ($TBT > 200)}")" -eq 1 ]; then
+            echo "::warning title=Performance Budget Alert::Total Blocking Time is too high ($TBT ms). Target is < 200 ms."
+          fi
 
-              # 4. Send exact JSON payload to Mahmoud's API
-              curl -X POST "https://performance-api-1.onrender.com/metrics" \
-              -H "Content-Type: application/json" \
-              -d '{
-                "commit_hash": "'"$COMMIT_HASH"'",
-                "branch": "'"$BRANCH_NAME"'",
-                "environment": "production",
-                "fcp": '"$FCP"',
-                "lcp": '"$LCP"',
-                "tbt": '"$TBT"'
-              }'
+          # 4. Get GitHub metadata
+          COMMIT_HASH=${{ github.sha }}
+          BRANCH_NAME=${{ github.ref_name }}
+
+          # 5. Send exact JSON payload to the backend API
+          curl -X POST "https://performance-api-1.onrender.com/metrics" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "commit_hash": "'"$COMMIT_HASH"'",
+            "branch": "'"$BRANCH_NAME"'",
+            "environment": "production",
+            "fcp": '"$FCP"',
+            "lcp": '"$LCP"',
+            "tbt": '"$TBT"'
+          }'
