@@ -1,0 +1,163 @@
+/* src/pages/Dashboard.css */
+.dashboard {
+  margin-left: 260px;
+  padding: 40px;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: -1px;
+}
+
+.dashboard-header p {
+  color: #64748b;
+  margin-top: 5px;
+}
+
+.sim-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.sim-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animation: Cards fade in */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Colored top bar for cards */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: #64748b; /* Default gray */
+  transition: background 0.3s ease;
+}
+
+/* Specific Static Colors */
+.card.env::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.card.fcp::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.card.lcp::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.card.tbt::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+/* --- SMART TRAFFIC LIGHT COLORS --- */
+
+/* Good (Green) */
+.card.status-good {
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
+}
+.card.status-good::before {
+  background: #10b981 !important; /* Forces Green */
+}
+
+/* Average (Orange) */
+.card.status-average {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
+}
+.card.status-average::before {
+  background: #f59e0b !important; /* Forces Orange */
+}
+
+/* Poor (Red) */
+.card.status-poor {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.15);
+}
+.card.status-poor::before {
+  background: #ef4444 !important; /* Forces Red */
+}
+
+.card h3 {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.value {
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(to bottom, #ffffff, #cbd5e1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.unit {
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.value.env {
+  font-size: 2rem;
+  text-transform: capitalize;
+  background: linear-gradient(to right, #fbbf24, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
