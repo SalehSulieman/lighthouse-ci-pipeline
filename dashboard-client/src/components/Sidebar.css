@@ -1,0 +1,31 @@
+/* Add to Sidebar.css */
+.sidebar-nav li a {
+  color: #94a3b8;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.logout-section {
+  margin-top: auto;
+  padding-bottom: 20px;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1rem;
+  padding: 15px 20px;
+  width: 100%;
+  border-radius: 12px;
+}
+
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
