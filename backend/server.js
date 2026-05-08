@@ -6,19 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const db = new sqlite3.Database("db.sqlite");
-db.run(`
-  CREATE TABLE IF NOT EXISTS metrics (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    commit_hash TEXT,
-    branch TEXT,
-    environment TEXT,
-    fcp REAL,
-    lcp REAL,
-    tbt REAL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+const db = new sqlite3.Database("./database/db.sqlite");
 function extractMetrics(filePath) {
   try {
     const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
@@ -227,8 +215,6 @@ function checkPerformance(metrics) {
   return alerts;
 }
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
 });
