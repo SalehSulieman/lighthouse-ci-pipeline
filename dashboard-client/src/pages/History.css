@@ -1,0 +1,174 @@
+/* src/pages/History.css */
+
+.history-page {
+  padding: 30px 40px;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #0f172a;
+  min-height: 100vh;
+}
+
+.history-header {
+  margin-bottom: 30px;
+}
+
+.history-header h1 {
+  font-size: 2rem;
+  color: #f1f5f9;
+  margin-bottom: 5px;
+}
+
+.history-header p {
+  color: #64748b;
+}
+
+/* TABLE CONTAINER */
+.table-container {
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  overflow: hidden; /* Critical for rounded corners */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 100%;
+}
+
+/* TABLE STYLING */
+.modern-table {
+  width: 100%;
+  table-layout: fixed; /* Forces strict alignment */
+  border-collapse: collapse;
+}
+
+/* Force border-box for table cells to include padding in width */
+.modern-table th,
+.modern-table td {
+  box-sizing: border-box;
+}
+
+.modern-table th {
+  padding: 18px 20px;
+  background: rgba(0, 0, 0, 0.2);
+  color: #94a3b8;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: left;
+  font-weight: 600;
+}
+
+/* Center specific headers */
+.modern-table th:nth-child(4),
+.modern-table th:nth-child(5),
+.modern-table th:nth-child(6),
+.modern-table th:nth-child(7) {
+  text-align: center;
+}
+
+.modern-table td {
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  vertical-align: middle;
+  word-wrap: break-word;
+}
+
+/* Center specific data cells */
+.modern-table td:nth-child(4),
+.modern-table td:nth-child(5),
+.modern-table td:nth-child(6),
+.modern-table td:nth-child(7) {
+  text-align: center;
+}
+
+/* ROW HOVER */
+.modern-table tbody tr {
+  transition: background 0.2s;
+}
+
+.modern-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* --- LEFT BORDER LOGIC (Moved to First Cell) --- */
+.first-cell {
+  position: relative; /* Anchor for the border */
+}
+
+/* The actual colored bar */
+.first-cell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #64748b; /* Default Gray */
+}
+
+/* Status Colors for the bar */
+tr.status-excellent .first-cell::before { background: #10b981; } /* Green */
+tr.status-good .first-cell::before { background: #f59e0b; } /* Orange */
+tr.status-poor .first-cell::before { background: #ef4444; } /* Red */
+
+/* ELEMENT STYLES */
+.date-main { display: block; font-weight: 600; color: #fff; }
+.date-sub { font-size: 0.8rem; color: #64748b; margin-top: 2px; display: block; }
+
+code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #38bdf8;
+}
+
+.env-badge {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.metric-value {
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  color: #cbd5e1;
+}
+
+/* STATUS BADGES */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-badge.status-excellent {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.status-badge.status-good {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.status-badge.status-poor {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+}
