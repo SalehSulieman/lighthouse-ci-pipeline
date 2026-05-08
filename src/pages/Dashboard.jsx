@@ -1,6 +1,6 @@
-// src/pages/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
-import { getMetrics, simulateTest } from '../api';
+import { getMetrics } from '../api';
+import PerformanceDashboard from '../components/PerformanceDashboard'; 
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -17,86 +17,86 @@ const Dashboard = () => {
     }
   };
 
-  const handleSimulate = async () => {
-    await simulateTest();
-    loadData();
-  };
-
-  // Helper to format time
   const formatSeconds = (seconds) => {
     if (!seconds) return '0.00';
     return seconds.toFixed(2);
   };
 
-  // Logic to decide if the score is Good, Average, or Poor
   const getStatusClass = (type, value) => {
     if (!value) return '';
-    
-    if (type === 'fcp') {
-      if (value <= 1.8) return 'status-good';
-      if (value <= 3.0) return 'status-average';
-      return 'status-poor';
-    }
-    if (type === 'lcp') {
-      if (value <= 2.5) return 'status-good';
-      if (value <= 4.0) return 'status-average';
-      return 'status-poor';
-    }
-    if (type === 'tbt') {
-      if (value <= 200) return 'status-good';
-      if (value <= 600) return 'status-average';
-      return 'status-poor';
-    }
+    if (type === 'fcp') return value <= 1.8 ? 'status-good' : value <= 3.0 ? 'status-average' : 'status-poor';
+    if (type === 'lcp') return value <= 2.5 ? 'status-good' : value <= 4.0 ? 'status-average' : 'status-poor';
+    if (type === 'tbt') return value <= 200 ? 'status-good' : value <= 600 ? 'status-average' : 'status-poor';
     return '';
   };
 
   return (
     <div className="dashboard">
+      
+      {/* HEADER SECTION */}
       <header className="dashboard-header">
-        <div>
-          <h1>Performance Overview</h1>
-          <p>Real-time metrics from Lighthouse CI</p>
+        <div className="header-left">
+          <h1>Dashboard Overview</h1>
+          <p>Real-time performance monitoring</p>
         </div>
-        <button className="sim-btn" onClick={handleSimulate}>
-          Run Simulation
-        </button>
+
+        <div className="header-right">
+            <button className="sim-btn" onClick={loadData}>
+                Refresh Data
+            </button>
+        </div>
       </header>
 
+      {/* CARDS GRID - NEW LAYOUT */}
       <div className="cards-grid">
-        {/* Environment Card */}
+        
+        {/* ENVIRONMENT CARD */}
         <div className="card env">
-          <h3>Environment</h3>
-          <div className="value env">
-            {latestMetrics ? latestMetrics.environment : '...'}
+          <div className="card-title">Environment</div>
+          <div className="card-divider"></div>
+          <div className="card-content">
+            <div className="value-left">{latestMetrics ? latestMetrics.environment : '...'}</div>
+            <div className="subtext-right"> {latestMetrics ? latestMetrics.branch : '-'}</div>
           </div>
-          <span className="unit">Branch: {latestMetrics ? latestMetrics.branch : '-'}</span>
         </div>
 
-        {/* FCP Card - Dynamic Color */}
+        {/* FCP CARD */}
         <div className={`card fcp ${latestMetrics ? getStatusClass('fcp', latestMetrics.fcp) : ''}`}>
-          <h3>First Contentful Paint</h3>
-          <div className="value">
-            {latestMetrics ? formatSeconds(latestMetrics.fcp) : '0.00'}
+          <div className="card-title">First Contentful Paint</div>
+          <div className="card-divider"></div>
+          <div className="card-content">
+            <div className="value-left">{latestMetrics ? formatSeconds(latestMetrics.fcp) : '0.00'}</div>
+            <div className="subtext-right">Seconds</div>
           </div>
-          <span className="unit">Seconds</span>
         </div>
 
-        {/* LCP Card - Dynamic Color */}
+        {/* LCP CARD */}
         <div className={`card lcp ${latestMetrics ? getStatusClass('lcp', latestMetrics.lcp) : ''}`}>
-          <h3>Largest Contentful Paint</h3>
-          <div className="value">
-            {latestMetrics ? formatSeconds(latestMetrics.lcp) : '0.00'}
+          <div className="card-title">Largest Contentful Paint</div>
+          <div className="card-divider"></div>
+          <div className="card-content">
+            <div className="value-left">{latestMetrics ? formatSeconds(latestMetrics.lcp) : '0.00'}</div>
+            <div className="subtext-right">Seconds</div>
           </div>
-          <span className="unit">Seconds</span>
         </div>
 
-        {/* TBT Card - Dynamic Color */}
+        {/* TBT CARD */}
         <div className={`card tbt ${latestMetrics ? getStatusClass('tbt', latestMetrics.tbt) : ''}`}>
-          <h3>Total Blocking Time</h3>
-          <div className="value">
-            {latestMetrics ? latestMetrics.tbt : '0'}
+          <div className="card-title">Total Blocking Time</div>
+          <div className="card-divider"></div>
+          <div className="card-content">
+            <div className="value-left">{latestMetrics ? latestMetrics.tbt : '0'}</div>
+            <div className="subtext-right">Milliseconds</div>
           </div>
-          <span className="unit">Milliseconds</span>
+        </div>
+
+      </div>
+
+      {/* CHART SECTION */}
+      <div className="chart-section">
+        <h3 className="chart-title">Performance History</h3>
+        <div style={{ flex: 1, width: '100%' }}>
+            <PerformanceDashboard />
         </div>
       </div>
     </div>

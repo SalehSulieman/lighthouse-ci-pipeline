@@ -1,3 +1,4 @@
+// src/components/PerformanceDashboard.jsx
 import React, { useEffect, useState } from 'react';
 import {
   Chart as ChartJS,
@@ -16,7 +17,6 @@ const PerformanceDashboard = () => {
   const [metrics, setMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch data from Mahmoud's API
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
@@ -32,41 +32,60 @@ const PerformanceDashboard = () => {
     fetchMetrics();
   }, []);
 
-  if (loading) return <div>Loading performance data...</div>;
-  if (!metrics.length) return <div>No data available yet.</div>;
+  if (loading) return <div style={{ color: '#94a3b8', textAlign: 'center' }}>Loading data...</div>;
+  if (!metrics.length) return <div style={{ color: '#94a3b8', textAlign: 'center' }}>No data available.</div>;
+
+  const getColor = (fcpValue) => {
+    if (fcpValue <= 1.8) return 'rgba(16, 185, 129, 0.8)'; // Green
+    if (fcpValue <= 3.0) return 'rgba(245, 158, 11, 0.8)'; // Orange
+    return 'rgba(239, 68, 68, 0.8)'; // Red
+  };
 
   const chartData = {
-    labels: metrics.map(m => m.commit_hash.substring(0, 7)),
+    labels: metrics.map(m => m.commit_hash?.substring(0, 7) || 'N/A'),
     datasets: [
       {
-        label: 'First Contentful Paint (Seconds)',
+        label: 'FCP (Seconds)',
         data: metrics.map(m => m.fcp),
-        // Week 3 Alert: Turns bar Red if FCP is over 2.0s
-        backgroundColor: metrics.map(m => 
-          m.fcp > 2.0 ? 'rgba(255, 99, 132, 0.7)' : 'rgba(75, 192, 192, 0.7)'
-        ),
-        borderColor: metrics.map(m => 
-          m.fcp > 2.0 ? 'rgb(255, 99, 132)' : 'rgb(75, 192, 192)'
-        ),
+        backgroundColor: metrics.map(m => getColor(m.fcp)),
+        borderColor: metrics.map(m => getColor(m.fcp).replace('0.8', '1')),
         borderWidth: 1,
+        borderRadius: 8,
+        borderSkipped: false,
       },
     ],
   };
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false, // Important for filling height
     plugins: {
-      legend: { position: 'top' },
-      title: { display: true, text: 'Lighthouse FCP Scores by Commit' },
+      legend: { display: false },
+      title: { display: false }, // Title is in the Dashboard parent
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleColor: '#ffffff',
+        bodyColor: '#94a3b8',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+      }
     },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { color: '#64748b' },
+        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+      },
+      x: {
+        ticks: { color: '#64748b' },
+        grid: { display: false }
+      }
+    }
   };
 
-  return (
-    <div style={{ width: '80%', margin: '0 auto' }}>
-      <h2>CI/CD Performance Dashboard</h2>
-      <Bar data={chartData} options={chartOptions} />
-    </div>
-  );
+  return <Bar data={chartData} options={chartOptions} />;
 };
 
 export default PerformanceDashboard;
