@@ -5,7 +5,6 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import History from './pages/History';
-import Settings from './pages/Settings';
 import Sidebar from './components/Sidebar';
 import { UserProvider } from './context/UserContext'; // 1. Import the Provider
 import './App.css';
@@ -51,14 +50,6 @@ function App() {
             element={
               <ProtectedLayout>
                 <History />
-              </ProtectedLayout>
-            } 
-          />
-          <Route 
-            path="/settings" 
-            element={
-              <ProtectedLayout>
-                <Settings />
               </ProtectedLayout>
             } 
           />
