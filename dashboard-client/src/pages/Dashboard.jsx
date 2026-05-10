@@ -7,28 +7,32 @@ const Dashboard = () => {
   const [latestMetrics, setLatestMetrics] = useState(null);
   const [trends, setTrends] = useState(null);
   const [activeAlerts, setActiveAlerts] = useState([]);
+  
+  // ADDED: Environment State for the dropdown filter
+  const [selectedEnv, setSelectedEnv] = useState('production');
 
+  // Trigger data load whenever the environment changes
   useEffect(() => {
     loadData();
-  }, []);
+  }, [selectedEnv]);
 
   const loadData = async () => {
-    // 1. Fetch standard metrics
-    const data = await getMetrics();
+    // Pass the selected environment to all API calls
+    const data = await getMetrics(selectedEnv);
     if (data && data.length > 0) {
       setLatestMetrics(data[0]);
+    } else {
+      setLatestMetrics(null); // Clear data if empty
     }
     
-    // 2. Fetch trend analysis
-    const trendData = await getTrendAnalysis();
-    if (trendData) {
-      setTrends(trendData);
-    }
+    const trendData = await getTrendAnalysis(selectedEnv);
+    if (trendData) setTrends(trendData);
 
-    // 3. Fetch Backend Intelligence (Alerts)
-    const alertData = await getAlerts();
+    const alertData = await getAlerts(selectedEnv);
     if (alertData && alertData.length > 0) {
       setActiveAlerts(alertData[0].alerts || []);
+    } else {
+      setActiveAlerts([]);
     }
   };
 
@@ -37,29 +41,27 @@ const Dashboard = () => {
     return seconds.toFixed(2);
   };
 
-  // The frontend no longer guesses; it reacts to the backend's alert count.
   const getSystemStatus = () => {
-    if (!latestMetrics) return { text: "Loading...", icon: "⏳", color: "#64748b", bg: "#f1f5f9" };
+    if (!latestMetrics) return { text: "No Data", icon: "⚪", color: "#64748b", bg: "#f1f5f9" };
     
     if (activeAlerts.length === 0) {
-      return { text: "Excellent", icon: "🟢", color: "#15803d", bg: "#dcfce7" }; // Green
+      return { text: "Excellent", icon: "🟢", color: "#15803d", bg: "#dcfce7" }; 
     } else if (activeAlerts.length === 1) {
-      return { text: "Warning", icon: "🟡", color: "#b45309", bg: "#fef3c7" }; // Yellow/Orange
+      return { text: "Warning", icon: "🟡", color: "#b45309", bg: "#fef3c7" }; 
     } else {
-      return { text: "Critical", icon: "🔴", color: "#b91c1c", bg: "#fee2e2" }; // Red
+      return { text: "Critical", icon: "🔴", color: "#b91c1c", bg: "#fee2e2" }; 
     }
   };
 
   const status = getSystemStatus();
 
-  // Delta Visualizer
   const renderTrend = (metricKey) => {
     if (!trends || !trends.deltas || !trends.deltas[metricKey]) return null;
     const trend = trends.deltas[metricKey];
     const isGood = trend.isImprovement;
     
     const trendStyle = {
-      color: isGood ? '#4ade80' : '#f87171', // Bright Green and Bright Red to contrast against dark cards
+      color: isGood ? '#4ade80' : '#f87171', 
       fontSize: '0.9rem',
       fontWeight: 'bold',
       display: 'flex',
@@ -79,13 +81,25 @@ const Dashboard = () => {
     <div className="dashboard">
       
       {/* HEADER SECTION */}
-      <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div className="header-left">
           <h1>CI/CD Telemetry Hub</h1>
           <p>Real-time performance regression monitoring</p>
         </div>
 
         <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            
+            {/* ENVIRONMENT DROPDOWN FILTER */}
+            <select 
+              value={selectedEnv} 
+              onChange={(e) => setSelectedEnv(e.target.value)}
+              style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 'bold', backgroundColor: 'white', color: '#0f172a', cursor: 'pointer', outline: 'none' }}
+            >
+              <option value="production">Production</option>
+              <option value="staging">Staging</option>
+              <option value="development">Development</option>
+            </select>
+
             {/* DYNAMIC STATUS BADGE */}
             <div style={{ 
               backgroundColor: status.bg, 
@@ -121,7 +135,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* CARDS GRID - Text colors updated for high contrast */}
+      {/* CARDS GRID */}
       <div className="cards-grid">
         
         {/* ENVIRONMENT CARD */}
@@ -129,7 +143,7 @@ const Dashboard = () => {
           <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Active Environment</div>
           <div className="card-content" style={{ display: 'flex', flexDirection: 'column', marginTop: '1rem' }}>
             <div className="value-left" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffffff' }}>
-                {latestMetrics ? latestMetrics.environment.toUpperCase() : '...'}
+                {latestMetrics ? latestMetrics.environment.toUpperCase() : 'NO DATA'}
             </div>
             <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', marginTop: '8px' }}>
                 Branch: <span style={{ fontWeight: 'bold', color: '#ffffff' }}>{latestMetrics ? latestMetrics.branch : '-'}</span>
@@ -166,7 +180,6 @@ const Dashboard = () => {
           <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Total Blocking Time</div>
           <div className="card-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1rem' }}>
             <div>
-              {/* Added Math.round() below to fix the floating point error */}
               <div className="value-left" style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ffffff' }}>{latestMetrics ? Math.round(latestMetrics.tbt) : '0'}ms</div>
               {renderTrend('tbt')}
             </div>
@@ -180,7 +193,8 @@ const Dashboard = () => {
       <div className="chart-section" style={{ marginTop: '2rem', padding: '1.5rem', backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="chart-title" style={{ margin: '0 0 1.5rem 0', color: '#0f172a' }}>Performance Regression History</h3>
         <div style={{ flex: 1, width: '100%' }}>
-            <PerformanceDashboard />
+            {/* Pass the selected environment down to the chart component */}
+            <PerformanceDashboard environment={selectedEnv} />
         </div>
       </div>
     </div>
