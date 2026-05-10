@@ -6,7 +6,7 @@ import './Dashboard.css';
 const Dashboard = () => {
   const [latestMetrics, setLatestMetrics] = useState(null);
   const [trends, setTrends] = useState(null);
-  const [activeAlerts, setActiveAlerts] = useState([]); // ADDED: State for backend alerts
+  const [activeAlerts, setActiveAlerts] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -28,7 +28,7 @@ const Dashboard = () => {
     // 3. Fetch Backend Intelligence (Alerts)
     const alertData = await getAlerts();
     if (alertData && alertData.length > 0) {
-      setActiveAlerts(alertData[0].alerts || []); // Assuming index 0 is the latest commit
+      setActiveAlerts(alertData[0].alerts || []);
     }
   };
 
@@ -37,7 +37,6 @@ const Dashboard = () => {
     return seconds.toFixed(2);
   };
 
-  // --- ENTERPRISE UPGRADE: Dynamic Status Logic ---
   // The frontend no longer guesses; it reacts to the backend's alert count.
   const getSystemStatus = () => {
     if (!latestMetrics) return { text: "Loading...", icon: "⏳", color: "#64748b", bg: "#f1f5f9" };
@@ -60,7 +59,7 @@ const Dashboard = () => {
     const isGood = trend.isImprovement;
     
     const trendStyle = {
-      color: isGood ? '#10b981' : '#ef4444', 
+      color: isGood ? '#4ade80' : '#f87171', // Bright Green and Bright Red to contrast against dark cards
       fontSize: '0.9rem',
       fontWeight: 'bold',
       display: 'flex',
@@ -108,7 +107,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* ACTIVE ALERTS PANEL (Backend Intelligence) */}
+      {/* ACTIVE ALERTS PANEL */}
       {activeAlerts.length > 0 && (
         <div style={{ backgroundColor: '#fffbeb', borderLeft: '4px solid #f59e0b', padding: '1rem', marginBottom: '1.5rem', borderRadius: '4px' }}>
           <h4 style={{ margin: '0 0 8px 0', color: '#b45309', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -122,55 +121,56 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* CARDS GRID - Cleaned of Hardcoded CSS */}
+      {/* CARDS GRID - Text colors updated for high contrast */}
       <div className="cards-grid">
         
         {/* ENVIRONMENT CARD */}
-        <div className="card env" style={{ borderLeft: '4px solid #64748b', backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <div className="card-title" style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Active Environment</div>
+        <div className="card env" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+          <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Active Environment</div>
           <div className="card-content" style={{ display: 'flex', flexDirection: 'column', marginTop: '1rem' }}>
-            <div className="value-left" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#0f172a' }}>
+            <div className="value-left" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffffff' }}>
                 {latestMetrics ? latestMetrics.environment.toUpperCase() : '...'}
             </div>
-            <div style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '8px' }}>
-                Branch: <span style={{ fontWeight: 'bold' }}>{latestMetrics ? latestMetrics.branch : '-'}</span>
+            <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', marginTop: '8px' }}>
+                Branch: <span style={{ fontWeight: 'bold', color: '#ffffff' }}>{latestMetrics ? latestMetrics.branch : '-'}</span>
             </div>
           </div>
         </div>
 
         {/* FCP CARD */}
-        <div className="card fcp" style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <div className="card-title" style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>First Contentful Paint</div>
+        <div className="card fcp" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+          <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>First Contentful Paint</div>
           <div className="card-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1rem' }}>
             <div>
-              <div className="value-left" style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0f172a' }}>{latestMetrics ? formatSeconds(latestMetrics.fcp) : '0.00'}s</div>
+              <div className="value-left" style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ffffff' }}>{latestMetrics ? formatSeconds(latestMetrics.fcp) : '0.00'}s</div>
               {renderTrend('fcp')}
             </div>
-            <div className="subtext-right" style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Target: &lt;1.8s</div>
+            <div className="subtext-right" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem' }}>Target: &lt;1.8s</div>
           </div>
         </div>
 
         {/* LCP CARD */}
-        <div className="card lcp" style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <div className="card-title" style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Largest Contentful Paint</div>
+        <div className="card lcp" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+          <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Largest Contentful Paint</div>
           <div className="card-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1rem' }}>
             <div>
-              <div className="value-left" style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0f172a' }}>{latestMetrics ? formatSeconds(latestMetrics.lcp) : '0.00'}s</div>
+              <div className="value-left" style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ffffff' }}>{latestMetrics ? formatSeconds(latestMetrics.lcp) : '0.00'}s</div>
               {renderTrend('lcp')}
             </div>
-            <div className="subtext-right" style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Target: &lt;2.5s</div>
+            <div className="subtext-right" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem' }}>Target: &lt;2.5s</div>
           </div>
         </div>
 
         {/* TBT CARD */}
-        <div className="card tbt" style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <div className="card-title" style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Total Blocking Time</div>
+        <div className="card tbt" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+          <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Total Blocking Time</div>
           <div className="card-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1rem' }}>
             <div>
-              <div className="value-left" style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0f172a' }}>{latestMetrics ? latestMetrics.tbt : '0'}ms</div>
+              {/* Added Math.round() below to fix the floating point error */}
+              <div className="value-left" style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ffffff' }}>{latestMetrics ? Math.round(latestMetrics.tbt) : '0'}ms</div>
               {renderTrend('tbt')}
             </div>
-            <div className="subtext-right" style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Target: &lt;200ms</div>
+            <div className="subtext-right" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem' }}>Target: &lt;200ms</div>
           </div>
         </div>
 
