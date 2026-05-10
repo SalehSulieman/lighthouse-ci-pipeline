@@ -1,91 +1,108 @@
-// src/components/PerformanceDashboard.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
   Legend,
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+  ResponsiveContainer
+} from 'recharts';
+import { getMetrics } from '../api';
 
 const PerformanceDashboard = () => {
-  const [metrics, setMetrics] = useState([]);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMetrics = async () => {
-      try {
-        const response = await fetch('https://performance-api-1.onrender.com/metrics');
-        const data = await response.json();
-        setMetrics(data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching metrics:", error);
-        setLoading(false);
-      }
-    };
-    fetchMetrics();
+    loadChartData();
   }, []);
 
-  if (loading) return <div style={{ color: '#94a3b8', textAlign: 'center' }}>Loading data...</div>;
-  if (!metrics.length) return <div style={{ color: '#94a3b8', textAlign: 'center' }}>No data available.</div>;
-
-  const getColor = (fcpValue) => {
-    if (fcpValue <= 1.8) return 'rgba(16, 185, 129, 0.8)'; // Green
-    if (fcpValue <= 3.0) return 'rgba(245, 158, 11, 0.8)'; // Orange
-    return 'rgba(239, 68, 68, 0.8)'; // Red
-  };
-
-  const chartData = {
-    labels: metrics.map(m => m.commit_hash?.substring(0, 7) || 'N/A'),
-    datasets: [
-      {
-        label: 'FCP (Seconds)',
-        data: metrics.map(m => m.fcp),
-        backgroundColor: metrics.map(m => getColor(m.fcp)),
-        borderColor: metrics.map(m => getColor(m.fcp).replace('0.8', '1')),
-        borderWidth: 1,
-        borderRadius: 8,
-        borderSkipped: false,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false, // Important for filling height
-    plugins: {
-      legend: { display: false },
-      title: { display: false }, // Title is in the Dashboard parent
-      tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        titleColor: '#ffffff',
-        bodyColor: '#94a3b8',
-        borderColor: 'rgba(255,255,255,0.1)',
-        borderWidth: 1,
-        padding: 10,
-        cornerRadius: 8,
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: { color: '#64748b' },
-        grid: { color: 'rgba(255, 255, 255, 0.05)' }
-      },
-      x: {
-        ticks: { color: '#64748b' },
-        grid: { display: false }
-      }
+  const loadChartData = async () => {
+    setLoading(true);
+    const metrics = await getMetrics();
+    if (metrics && metrics.length > 0) {
+      // Recharts reads data from left to right, so we reverse the array 
+      // to show chronological order (oldest commit on the left, newest on the right)
+      const chartData = metrics.slice(0, 10).reverse().map(item => ({
+        commit: item.commit_hash ? item.commit_hash.substring(0, 7) : 'N/A',
+        FCP: item.fcp,
+        LCP: item.lcp,
+        TBT: Math.round(item.tbt) // Rounding TBT here to prevent long decimals on the chart
+      }));
+      setData(chartData);
     }
+    setLoading(false);
   };
 
-  return <Bar data={chartData} options={chartOptions} />;
+  // Custom Tooltip to make it look professional on hover
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div style={{ backgroundColor: '#1e293b', padding: '12px', borderRadius: '8px', color: 'white', border: '1px solid #475569', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', borderBottom: '1px solid #334155', paddingBottom: '4px' }}>Commit: {label}</p>
+          {payload.map((entry, index) => (
+            <p key={index} style={{ color: entry.color, margin: '4px 0', fontSize: '0.9rem', fontWeight: '500' }}>
+              {entry.name}: {entry.value} {entry.name === 'TBT' ? 'ms' : 's'}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  if (loading) {
+    return <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading telemetry data...</div>;
+  }
+
+  if (!data || data.length === 0) {
+    return <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>No telemetry data available.</div>;
+  }
+
+  return (
+    <div style={{ width: '100%', height: 400 }}>
+      <ResponsiveContainer>
+        <LineChart
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+          <XAxis 
+            dataKey="commit" 
+            tick={{ fill: '#64748b', fontSize: 12 }} 
+            axisLine={{ stroke: '#cbd5e1' }}
+            tickLine={false} 
+            dy={10}
+          />
+          {/* Left Y-Axis for Seconds (FCP & LCP) */}
+          <YAxis 
+            yAxisId="left" 
+            tick={{ fill: '#64748b', fontSize: 12 }} 
+            axisLine={false} 
+            tickLine={false} 
+            dx={-10}
+          />
+          {/* Right Y-Axis for Milliseconds (TBT) */}
+          <YAxis 
+            yAxisId="right" 
+            orientation="right" 
+            tick={{ fill: '#64748b', fontSize: 12 }} 
+            axisLine={false} 
+            tickLine={false} 
+            dx={10}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
+          
+          <Line yAxisId="left" type="monotone" dataKey="FCP" name="FCP (s)" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: 'white' }} activeDot={{ r: 6 }} />
+          <Line yAxisId="left" type="monotone" dataKey="LCP" name="LCP (s)" stroke="#ec4899" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: 'white' }} activeDot={{ r: 6 }} />
+          <Line yAxisId="right" type="monotone" dataKey="TBT" name="TBT (ms)" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: 'white' }} activeDot={{ r: 6 }} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
 };
 
 export default PerformanceDashboard;
