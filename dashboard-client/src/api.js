@@ -26,7 +26,6 @@ export const getAlerts = async () => {
 };
 
 // --- ENTERPRISE UPGRADE: Trend Analytics Engine ---
-// Calculates the commit-over-commit delta (percentage change)
 export const getTrendAnalysis = async () => {
   try {
     const metrics = await getMetrics();
@@ -36,10 +35,17 @@ export const getTrendAnalysis = async () => {
     const current = metrics[0];
     const previous = metrics[1];
 
-    // Note: For web performance (time), a negative difference is an IMPROVEMENT (faster is better)
     const calculateDelta = (curr, prev) => {
       const diff = curr - prev;
-      const percent = ((diff / prev) * 100).toFixed(1);
+      let percent;
+      
+      // Safely handle divide-by-zero if the previous score was perfect (0)
+      if (prev === 0) {
+        percent = curr > 0 ? "100" : "0.0";
+      } else {
+        percent = ((diff / prev) * 100).toFixed(1);
+      }
+
       return { 
         rawDiff: diff.toFixed(2), 
         percent: percent, 
