@@ -3,6 +3,8 @@ name: Lighthouse CI Pipeline
 on:
   push:
     branches: [ main ]
+  pull_request: # ADDED: This makes it run when a PR is opened, which is when you want to block bad code!
+    branches: [ main ]
 
 jobs:
   lighthouse-test:
@@ -22,10 +24,9 @@ jobs:
         run: npm install -g @lhci/cli
 
       - name: Run Lighthouse & Save JSON
-        # Runs the test and saves both HTML and JSON locally
         run: lhci collect --url="https://example.com"
 
-      - name: Extract Data, Check Budget, and Send to Backend
+      - name: Extract Data, Send to Backend, and Enforce Budgets
         run: |
           # 1. Find the generated JSON file
           JSON_FILE=$(ls .lighthouseci/lhr-*.json | head -n 1)
@@ -35,24 +36,15 @@ jobs:
           LCP=$(jq '.audits["largest-contentful-paint"].numericValue / 1000' $JSON_FILE)
           TBT=$(jq '.audits["total-blocking-time"].numericValue' $JSON_FILE)
 
-          # 3. PERFORMANCE BUDGET ALERTS
-          # FCP target is < 2.0 seconds
-          if [ "$(awk "BEGIN {print ($FCP > 2.0)}")" -eq 1 ]; then
-            echo "::warning title=Performance Budget Alert::First Contentful Paint is too slow ($FCP s). Target is < 2.0 s."
-          fi
-          
-          # TBT target is < 200 ms
-          if [ "$(awk "BEGIN {print ($TBT > 200)}")" -eq 1 ]; then
-            echo "::warning title=Performance Budget Alert::Total Blocking Time is too high ($TBT ms). Target is < 200 ms."
-          fi
-
-          # 4. Get GitHub metadata
+          # 3. Get GitHub metadata
           COMMIT_HASH=${{ github.sha }}
           BRANCH_NAME=${{ github.ref_name }}
 
-          # 5. Send exact JSON payload to the backend API
+          # 4. SEND DATA FIRST (So your dashboard still records the failure)
+          # ADDED: Authorization Header for Security
           curl -X POST "https://performance-api-1.onrender.com/metrics" \
           -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.API_KEY }}" \
           -d '{
             "commit_hash": "'"$COMMIT_HASH"'",
             "branch": "'"$BRANCH_NAME"'",
@@ -61,3 +53,27 @@ jobs:
             "lcp": '"$LCP"',
             "tbt": '"$TBT"'
           }'
+
+          echo ""
+          echo "Data sent to backend. Evaluating Performance Gates..."
+
+          # 5. PERFORMANCE BUDGET GATES (The AA Flex - PR Blocker)
+          FAILED=0
+
+          if [ "$(awk "BEGIN {print ($FCP > 2.0)}")" -eq 1 ]; then
+            echo "::error title=Performance Gate Failed::First Contentful Paint is too slow ($FCP s). Target is < 2.0 s."
+            FAILED=1
+          fi
+          
+          if [ "$(awk "BEGIN {print ($TBT > 200)}")" -eq 1 ]; then
+            echo "::error title=Performance Gate Failed::Total Blocking Time is too high ($TBT ms). Target is < 200 ms."
+            FAILED=1
+          fi
+
+          # 6. ENFORCE THE BLOCK
+          if [ "$FAILED" -eq 1 ]; then
+            echo "❌ Performance budgets exceeded. Blocking the CI pipeline."
+            exit 1
+          else
+            echo "✅ All performance budgets passed!"
+          fi
