@@ -11,42 +11,49 @@ import {
 } from 'recharts';
 import { getMetrics } from '../api';
 
-const PerformanceDashboard = () => {
+const PerformanceDashboard = ({ environment = 'production' }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Re-fetch chart data whenever the environment dropdown changes
   useEffect(() => {
     loadChartData();
-  }, []);
+  }, [environment]);
 
   const loadChartData = async () => {
     setLoading(true);
-    const metrics = await getMetrics();
+    const metrics = await getMetrics(environment);
     if (metrics && metrics.length > 0) {
-      // Recharts reads data from left to right, so we reverse the array 
-      // to show chronological order (oldest commit on the left, newest on the right)
       const chartData = metrics.slice(0, 10).reverse().map(item => ({
         commit: item.commit_hash ? item.commit_hash.substring(0, 7) : 'N/A',
         FCP: item.fcp,
         LCP: item.lcp,
-        TBT: Math.round(item.tbt) // Rounding TBT here to prevent long decimals on the chart
+        TBT: Math.round(item.tbt) 
       }));
       setData(chartData);
+    } else {
+      setData([]); // Clear chart if no data for this environment
     }
     setLoading(false);
   };
 
-  // Custom Tooltip to make it look professional on hover
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div style={{ backgroundColor: '#1e293b', padding: '12px', borderRadius: '8px', color: 'white', border: '1px solid #475569', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
           <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', borderBottom: '1px solid #334155', paddingBottom: '4px' }}>Commit: {label}</p>
-          {payload.map((entry, index) => (
-            <p key={index} style={{ color: entry.color, margin: '4px 0', fontSize: '0.9rem', fontWeight: '500' }}>
-              {entry.name}: {entry.value} {entry.name === 'TBT' ? 'ms' : 's'}
-            </p>
-          ))}
+          {payload.map((entry, index) => {
+            // Safely round FCP and LCP to 2 decimals. Leave TBT alone.
+            const formattedValue = typeof entry.value === 'number' && !Number.isInteger(entry.value) 
+              ? entry.value.toFixed(2) 
+              : entry.value;
+
+            return (
+              <p key={index} style={{ color: entry.color, margin: '4px 0', fontSize: '0.9rem', fontWeight: '500' }}>
+                {entry.name}: {formattedValue}
+              </p>
+            );
+          })}
         </div>
       );
     }
@@ -58,7 +65,7 @@ const PerformanceDashboard = () => {
   }
 
   if (!data || data.length === 0) {
-    return <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>No telemetry data available.</div>;
+    return <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>No telemetry data available for this environment.</div>;
   }
 
   return (
@@ -76,7 +83,6 @@ const PerformanceDashboard = () => {
             tickLine={false} 
             dy={10}
           />
-          {/* Left Y-Axis for Seconds (FCP & LCP) */}
           <YAxis 
             yAxisId="left" 
             tick={{ fill: '#64748b', fontSize: 12 }} 
@@ -84,7 +90,6 @@ const PerformanceDashboard = () => {
             tickLine={false} 
             dx={-10}
           />
-          {/* Right Y-Axis for Milliseconds (TBT) */}
           <YAxis 
             yAxisId="right" 
             orientation="right" 
