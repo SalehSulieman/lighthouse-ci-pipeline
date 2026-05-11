@@ -45,43 +45,6 @@ app.get("/test-lighthouse", (req, res) => {
   const metrics = extractMetrics("./lighthouse.json");
   res.json(metrics);
 });
-app.get("/simulate", (req, res) => {
-  const metrics = extractMetrics("./lighthouse.json");
-
-  if (!metrics) {
-    return res.status(500).json({ error: "Failed to read Lighthouse data" });
-  }
-  const alerts = checkPerformance(metrics);
-
-  const query = `
-    INSERT INTO metrics (commit_hash, branch, environment, fcp, lcp, tbt)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
-
-  db.run(
-    query,
-    [
-      "auto-" + Date.now(),
-      "main",
-      "production",
-      metrics.fcp,
-      metrics.lcp,
-      metrics.tbt,
-    ],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-
-      res.json({
-        message: "Simulated Lighthouse data inserted",
-        id: this.lastID,
-        metrics: metrics,
-        alerts: alerts,
-      });
-    },
-  );
-});
 
 app.get("/", (req, res) => {
   res.send("API is running");
