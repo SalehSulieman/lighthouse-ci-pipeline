@@ -1,8 +1,8 @@
-#  Automated Web Performance Measurement & Visualization System
+# Automated Web Performance Measurement & Visualization System
 
 ---
 
-##  Overview
+## Overview
 
 This project converts traditional one-time web performance testing into a **continuous, automated process** integrated directly into CI/CD pipelines.
 
@@ -15,28 +15,28 @@ Instead of relying on manual testing, the system:
 
 ---
 
-##  Key Features
+## Key Features
 
--  **Automated Performance Testing** using Lighthouse CI  
--  **CI/CD Integration** with GitHub Actions / Gitea  
+- **Automated Performance Testing** using Lighthouse CI  
+- **CI/CD Integration** with GitHub Actions / Gitea  
 
--  **Core Metrics Tracking**:
+- **Core Metrics Tracking**:
   - First Contentful Paint (FCP)  
   - Largest Contentful Paint (LCP)  
   - Total Blocking Time (TBT)  
 
--  **Data Storage**:
+- **Data Storage**:
   - SQLite (default)  
   - PostgreSQL (scalable option)  
 
--  **Interactive Dashboard** built with React + Chart.js  
+- **Interactive Dashboard** built with React + Chart.js  
 
--  **Performance Budget Alerts**  
+- **Performance Budget Alerts**  
   *(Pipeline fails automatically when thresholds are exceeded)*  
 
 ---
 
-##  System Architecture
+## System Architecture
 
 ```text
 Code Commit
