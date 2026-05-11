@@ -267,20 +267,6 @@ function checkPerformance(metrics) {
 
   return alerts;
 }
-app.delete("/metrics", (req, res) => {
-  db.run("DELETE FROM metrics", function (err) {
-    if (err) {
-      return res.status(500).json({
-        error: err.message,
-      });
-    }
-
-    res.json({
-      success: true,
-      deleted: true,
-    });
-  });
-});
 
 const PORT = process.env.PORT || 3000;
 
