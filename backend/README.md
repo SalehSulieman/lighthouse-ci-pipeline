@@ -1,90 +1,57 @@
-# Web Performance Monitoring System
-
-## Overview
-
-This project automates web performance testing using Lighthouse CI and visualizes results in a dashboard.
-
-The system runs performance tests on every code push, stores metrics in a backend API, and displays trends in a frontend dashboard.
+# 🚀 Automated Web Performance Measurement & Visualization System
 
 ---
 
-## Architecture
+## 📌 Overview
 
-* **CI/CD Pipeline**: GitHub Actions runs Lighthouse after each push
-* **Backend API**: Node.js + Express (deployed on Render)
-* **Frontend Dashboard**: React app (deployed on Vercel)
+This project converts traditional one-time web performance testing into a **continuous, automated process** integrated directly into CI/CD pipelines.
 
----
+Instead of relying on manual testing, the system:
 
-## Live Links
-
-* Frontend:
-  https://lighthouse-ci-pipeline.vercel.app
-
-* Backend API:
-  https://performance-api-1.onrender.com
+- Runs automatically after every code commit  
+- Collects key web performance metrics  
+- Stores results in a structured database  
+- Visualizes performance trends through an interactive dashboard  
 
 ---
 
-## How It Works
+## 🎯 Key Features
 
-1. Code is pushed to GitHub
-2. GitHub Actions triggers Lighthouse CI
-3. Lighthouse generates performance metrics
-4. Metrics are sent to the backend API
-5. Data is stored in the database
-6. Frontend fetches and displays the data
+- ⚡ **Automated Performance Testing** using Lighthouse CI  
+- 🔄 **CI/CD Integration** with GitHub Actions / Gitea  
 
----
+- 📊 **Core Metrics Tracking**:
+  - First Contentful Paint (FCP)  
+  - Largest Contentful Paint (LCP)  
+  - Total Blocking Time (TBT)  
 
-## API Endpoints
+- 🗄️ **Data Storage**:
+  - SQLite (default)  
+  - PostgreSQL (scalable option)  
 
-### Get all metrics
+- 📈 **Interactive Dashboard** built with React + Chart.js  
 
-GET /metrics
-
-### Get chart data
-
-GET /metrics/chart/structured
-
-### Get performance alerts
-
-GET /metrics/alerts
+- 🚨 **Performance Budget Alerts**  
+  *(Pipeline fails automatically when thresholds are exceeded)*  
 
 ---
 
-## Example Data
+## 🧠 System Architecture
 
+```text
+Code Commit
+     ↓
+CI/CD Pipeline (GitHub Actions)
+     ↓
+Lighthouse CI
+     ↓
+JSON Output
+     ↓
+Backend API
+     ↓
+Database
+     ↓
+React Dashboard
+     ↓
+Charts + Alerts
 ```
-{
-  "commit_hash": "abc123",
-  "branch": "main",
-  "environment": "production",
-  "fcp": 0.76,
-  "lcp": 0.76,
-  "tbt": 5.5
-}
-```
-
----
-
-## Notes
-
-* Backend is deployed separately on Render
-* The backend folder in this repo is for presentation purposes only
-* Data updates automatically after each commit
-
----
-
-## Technologies Used
-
-* Node.js, Express
-* SQLite
-* React
-* Chart.js
-* Lighthouse CI
-* GitHub Actions
-* Vercel
-* Render
-
----
