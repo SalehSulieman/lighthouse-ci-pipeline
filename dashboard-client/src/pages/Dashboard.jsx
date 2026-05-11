@@ -189,8 +189,17 @@ const Dashboard = () => {
 
       </div>
 
+      {/* DELIBERATE LCP INJECTION: Massive 4K image to delay the Largest Contentful Paint score */}
+      <div style={{ marginTop: '1.5rem', width: '100%', height: '180px', overflow: 'hidden', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+        <img 
+          src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=100&w=4000&auto=format&fit=crop" 
+          alt="Heavy Payload Injector" 
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </div>
+
       {/* CHART SECTION */}
-      <div className="chart-section" style={{ marginTop: '2rem', padding: '1.5rem', backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+      <div className="chart-section" style={{ marginTop: '1.5rem', padding: '1.5rem', backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="chart-title" style={{ margin: '0 0 1.5rem 0', color: '#0f172a' }}>Performance Regression History</h3>
         <div style={{ flex: 1, width: '100%' }}>
             {/* Pass the selected environment down to the chart component */}
