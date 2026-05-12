@@ -40,8 +40,15 @@ jobs:
           LCP=$(jq '.audits["largest-contentful-paint"].numericValue / 1000' $JSON_FILE)
           TBT=$(jq '.audits["total-blocking-time"].numericValue' $JSON_FILE)
 
+          echo "===== LIGHTHOUSE METRICS ====="
+          echo "FCP: $FCP"
+          echo "LCP: $LCP"
+          echo "TBT: $TBT"
+          echo "=============================="
+
           COMMIT_HASH=${{ github.sha }}
           BRANCH_NAME=${{ github.ref_name }}
+
 
           # Dynamic Environment Routing based on Branch Name
           if [ "$BRANCH_NAME" = "main" ]; then
