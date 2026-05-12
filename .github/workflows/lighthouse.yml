@@ -26,8 +26,8 @@ jobs:
       # ADDED: The Vercel Buffer
       - name: Wait for Vercel Deployment
         run: |
-          echo "Waiting 240 seconds for Vercel to finish deploying the new code..."
-          sleep 240
+          echo "Waiting 90 seconds for Vercel to finish deploying the new code..."
+          sleep 90
 
       - name: Run Lighthouse & Save JSON
         run: lhci collect --url="https://lighthouse-ci-pipeline.vercel.app"
