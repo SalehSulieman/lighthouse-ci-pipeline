@@ -170,274 +170,188 @@ const Dashboard = () => {
 
 
 
-  return (
 
-    <div className="dashboard">
 
-      
+    
+return (
+  <div className="dashboard">
 
-      {/* HEADER SECTION (FCP TRIGGER - Paints Instantly) */}
+    {/* HEADER */}
+    <header
+      className="dashboard-header"
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '1rem'
+      }}
+    >
+      <div className="header-left">
+        <h1>CI/CD Telemetry Hub</h1>
+        <p>
+          Real-time performance regression monitoring
+        </p>
+      </div>
+    </header>
 
-      <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+    {/* HEAVY CONTENT SECTION */}
+    <div style={{ marginTop: '1.5rem' }}>
 
-        <div className="header-left">
+      {!isHeavyContentLoaded ? (
 
-          <h1>CI/CD Telemetry Hub</h1>
-
-          <p>Real-time performance regression monitoring</p>
-
+        <div
+          style={{
+            width: '100%',
+            height: '500px',
+            backgroundColor: '#e2e8f0',
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#64748b',
+            fontWeight: 'bold'
+          }}
+        >
+          Generating telemetry visualizations...
         </div>
 
+      ) : (
 
+        <>
+          {/* MASSIVE DELAYED IMAGE */}
+          <div
+            style={{
+              width: '100%',
+              height: '700px',
+              overflow: 'hidden',
+              borderRadius: '12px',
+              marginBottom: '2rem'
+            }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=100&w=4000&auto=format&fit=crop"
+              alt="Telemetry Visualization"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+              }}
+            />
+          </div>
 
-        <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-
-            <select 
-
-              value={selectedEnv} 
-
-              onChange={(e) => setSelectedEnv(e.target.value)}
-
-              style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 'bold', backgroundColor: 'white', color: '#0f172a', cursor: 'pointer', outline: 'none' }}
-
+          {/* CHART */}
+          <div
+            className="chart-section"
+            style={{
+              padding: '1.5rem',
+              backgroundColor: '#ffffff',
+              borderRadius: '8px',
+              boxShadow:
+                '0 1px 3px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            <h3
+              className="chart-title"
+              style={{
+                margin: '0 0 1.5rem 0',
+                color: '#0f172a'
+              }}
             >
+              Performance Regression History
+            </h3>
 
-              <option value="production">Production</option>
-
-              <option value="staging">Staging</option>
-
-              <option value="development">Development</option>
-
-            </select>
-
-
-
-            <div style={{ 
-
-              backgroundColor: status.bg, 
-
-              color: status.color, 
-
-              padding: '8px 16px', 
-
-              borderRadius: '9999px', 
-
-              fontWeight: 'bold',
-
-              display: 'flex',
-
-              alignItems: 'center',
-
-              gap: '8px',
-
-              border: `1px solid ${status.color}40`
-
-            }}>
-
-              {status.icon} {status.text}
-
+            <div style={{ flex: 1, width: '100%' }}>
+              <PerformanceDashboard
+                environment={selectedEnv}
+              />
             </div>
-
-
-
-            <button className="sim-btn" style={{ fontWeight: 'bold', backgroundColor: '#2563eb', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer' }} onClick={loadData}>
-
-                Sync Data
-
-            </button>
-
-        </div>
-
-      </header>
-
-
-
-      {/* ACTIVE ALERTS PANEL */}
-
-      {activeAlerts.length > 0 && (
-
-        <div style={{ backgroundColor: '#fffbeb', borderLeft: '4px solid #f59e0b', padding: '1rem', marginBottom: '1.5rem', borderRadius: '4px' }}>
-
-          <h4 style={{ margin: '0 0 8px 0', color: '#b45309', display: 'flex', alignItems: 'center', gap: '8px' }}>
-
-            ⚠️ Active Performance Alerts
-
-          </h4>
-
-          <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#92400e', fontSize: '0.9rem' }}>
-
-            {activeAlerts.map((alert, index) => (
-
-              <li key={index} style={{ marginBottom: '4px' }}>{alert}</li>
-
-            ))}
-
-          </ul>
-
-        </div>
+          </div>
+        </>
 
       )}
+    </div>
 
+    {/* MOVED CARDS GRID BELOW HEAVY CONTENT */}
+    <div className="cards-grid">
 
-
-      {/* CARDS GRID (FCP TRIGGER - Paints Instantly) */}
-
-      <div className="cards-grid">
-
-        <div className="card env" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-
-          <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Active Environment</div>
-
-          <div className="card-content" style={{ display: 'flex', flexDirection: 'column', marginTop: '1rem' }}>
-
-            <div className="value-left" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffffff' }}>
-
-                {latestMetrics ? latestMetrics.environment.toUpperCase() : 'NO DATA'}
-
-            </div>
-
-            <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', marginTop: '8px' }}>
-
-                Branch: <span style={{ fontWeight: 'bold', color: '#ffffff' }}>{latestMetrics ? latestMetrics.branch : '-'}</span>
-
-            </div>
-
-          </div>
-
+      <div
+        className="card env"
+        style={{
+          padding: '1.5rem',
+          borderRadius: '8px'
+        }}
+      >
+        <div className="card-title">
+          Active Environment
         </div>
 
-
-
-        <div className="card fcp" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-
-          <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>First Contentful Paint</div>
-
-          <div className="card-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1rem' }}>
-
-            <div>
-
-              <div className="value-left" style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ffffff' }}>{latestMetrics ? formatSeconds(latestMetrics.fcp) : '0.00'}s</div>
-
-              {renderTrend('fcp')}
-
-            </div>
-
-            <div className="subtext-right" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem' }}>Target: &lt;1.8s</div>
-
+        <div className="card-content">
+          <div className="value-left">
+            {latestMetrics
+              ? latestMetrics.environment.toUpperCase()
+              : 'NO DATA'}
           </div>
-
         </div>
-
-
-
-        <div className="card lcp" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-
-          <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Largest Contentful Paint</div>
-
-          <div className="card-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1rem' }}>
-
-            <div>
-
-              <div className="value-left" style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ffffff' }}>{latestMetrics ? formatSeconds(latestMetrics.lcp) : '0.00'}s</div>
-
-              {renderTrend('lcp')}
-
-            </div>
-
-            <div className="subtext-right" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem' }}>Target: &lt;2.5s</div>
-
-          </div>
-
-        </div>
-
-
-
-        <div className="card tbt" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-
-          <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Total Blocking Time</div>
-
-          <div className="card-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1rem' }}>
-
-            <div>
-
-              <div className="value-left" style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ffffff' }}>{latestMetrics ? Math.round(latestMetrics.tbt) : '0'}ms</div>
-
-              {renderTrend('tbt')}
-
-            </div>
-
-            <div className="subtext-right" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem' }}>Target: &lt;200ms</div>
-
-          </div>
-
-        </div>
-
       </div>
 
+      <div className="card fcp">
+        <div className="card-title">
+          First Contentful Paint
+        </div>
 
-
-      {/* HEAVY CONTENT SECTION (LCP TRIGGER - Delayed by 1.5s) */}
-
-      <div style={{ marginTop: '1.5rem' }}>
-
-        {!isHeavyContentLoaded ? (
-
-          // The Skeleton Loader (Paints instantly)
-
-          <div style={{ width: '100%', height: '500px', backgroundColor: '#e2e8f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontWeight: 'bold', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>
-
-            Generating telemetry visualizations...
-
+        <div className="card-content">
+          <div className="value-left">
+            {latestMetrics
+              ? formatSeconds(latestMetrics.fcp)
+              : '0.00'}
+            s
           </div>
 
-        ) : (
-
-          // The Real Content (Paints after delay, forcing Lighthouse to mark this as LCP)
-
-          <>
-
-            <div style={{ width: '100%', height: '180px', overflow: 'hidden', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', marginBottom: '1.5rem' }}>
-
-              <img 
-
-                src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=100&w=4000&auto=format&fit=crop" 
-
-                alt="Heavy Payload Injector" 
-
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-
-              />
-
-            </div>
-
-
-
-            <div className="chart-section" style={{ padding: '1.5rem', backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-
-              <h3 className="chart-title" style={{ margin: '0 0 1.5rem 0', color: '#0f172a' }}>Performance Regression History</h3>
-
-              <div style={{ flex: 1, width: '100%' }}>
-
-                  <PerformanceDashboard environment={selectedEnv} />
-
-              </div>
-
-            </div>
-
-          </>
-
-        )}
-
+          {renderTrend('fcp')}
+        </div>
       </div>
 
+      <div className="card lcp">
+        <div className="card-title">
+          Largest Contentful Paint
+        </div>
 
+        <div className="card-content">
+          <div className="value-left">
+            {latestMetrics
+              ? formatSeconds(latestMetrics.lcp)
+              : '0.00'}
+            s
+          </div>
+
+          {renderTrend('lcp')}
+        </div>
+      </div>
+
+      <div className="card tbt">
+        <div className="card-title">
+          Total Blocking Time
+        </div>
+
+        <div className="card-content">
+          <div className="value-left">
+            {latestMetrics
+              ? Math.round(latestMetrics.tbt)
+              : '0'}
+            ms
+          </div>
+
+          {renderTrend('tbt')}
+        </div>
+      </div>
 
     </div>
 
-  );
+  </div>
+);
+
 
 };
-
-
 
 export default Dashboard;
