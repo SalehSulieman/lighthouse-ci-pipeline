@@ -2,11 +2,18 @@ const fs = require("fs");
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
+
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
 const db = new sqlite3.Database("db.sqlite");
+
+/* =========================
+   DATABASE SETUP
+========================= */
+
 db.run(`
   CREATE TABLE IF NOT EXISTS metrics (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -16,51 +23,120 @@ db.run(`
     fcp REAL,
     lcp REAL,
     tbt REAL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(commit_hash, environment)
   )
 `);
+
+db.run(`
+  CREATE INDEX IF NOT EXISTS idx_environment
+  ON metrics(environment)
+`);
+
+db.run(`
+  CREATE INDEX IF NOT EXISTS idx_created_at
+  ON metrics(created_at)
+`);
+
+/* =========================
+   LIGHTHOUSE EXTRACTION
+========================= */
 
 function extractMetrics(filePath) {
   try {
     const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+
     return {
       fcp: Number(
         (data.audits["first-contentful-paint"].numericValue / 1000).toFixed(2),
       ),
+
       lcp: Number(
         (data.audits["largest-contentful-paint"].numericValue / 1000).toFixed(
           2,
         ),
       ),
+
       tbt: Number(data.audits["total-blocking-time"].numericValue.toFixed(2)),
     };
   } catch (error) {
     console.error("Error reading Lighthouse file:", error);
+
     return null;
   }
 }
 
-app.get("/test-lighthouse", (req, res) => {
-  const metrics = extractMetrics("./lighthouse.json");
-  res.json(metrics);
+/* =========================
+   HEALTH CHECK
+========================= */
+
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
 });
+
+/* =========================
+   ROOT ROUTE
+========================= */
 
 app.get("/", (req, res) => {
   res.send("API is running");
 });
 
+/* =========================
+   LIGHTHOUSE TEST ROUTE
+========================= */
+
+app.get("/test-lighthouse", (req, res) => {
+  const metrics = extractMetrics("./lighthouse.json");
+
+  res.json(metrics);
+});
+
+/* =========================
+   STATUS + ALERT LOGIC
+========================= */
+
 function getStatus(metrics) {
   if (metrics.lcp >= 4 || metrics.fcp >= 3.0 || metrics.tbt >= 500) {
     return "Critical";
   }
+
   if (metrics.lcp >= 2.5 || metrics.fcp >= 2.0 || metrics.tbt >= 200) {
     return "Warning";
   }
+
   return "Excellent";
 }
 
+function checkPerformance(metrics) {
+  const alerts = [];
+
+  if (metrics.lcp >= 4) {
+    alerts.push("LCP is too high (slow loading)");
+  }
+
+  if (metrics.fcp >= 3.0) {
+    alerts.push("FCP is slower than expected");
+  }
+
+  if (metrics.tbt >= 500) {
+    alerts.push("TBT indicates blocking issues");
+  }
+
+  return alerts;
+}
+
+/* =========================
+   GET METRICS
+========================= */
+
 app.get("/metrics", (req, res) => {
   const { environment } = req.query;
+
   let query = "SELECT * FROM metrics";
   let params = [];
 
@@ -73,23 +149,31 @@ app.get("/metrics", (req, res) => {
 
   db.all(query, params, (err, rows) => {
     if (err) {
-      res.status(500).json({ error: err.message });
-    } else {
-      const results = rows.map((row) => ({
-        ...row,
-        tbt: Math.round(row.tbt),
-        status: getStatus(row),
-        alerts: checkPerformance(row),
-      }));
-      res.json(results);
+      return res.status(500).json({
+        error: err.message,
+      });
     }
+
+    const results = rows.map((row) => ({
+      ...row,
+      tbt: Math.round(row.tbt),
+      status: getStatus(row),
+      alerts: checkPerformance(row),
+    }));
+
+    res.json(results);
   });
 });
 
-// FIXED: Added environment filtering to the chart endpoint
+/* =========================
+   CHART DATA
+========================= */
+
 app.get("/metrics/chart", (req, res) => {
   const { environment } = req.query;
+
   let query = "SELECT DATE(created_at) as date, fcp, lcp, tbt FROM metrics";
+
   let params = [];
 
   if (environment) {
@@ -97,21 +181,29 @@ app.get("/metrics/chart", (req, res) => {
     params.push(environment);
   }
 
-  query += " ORDER BY created_at ASC";
+  query += " ORDER BY created_at ASC LIMIT 50";
 
   db.all(query, params, (err, rows) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({
+        error: err.message,
+      });
     }
+
     res.json(rows);
   });
 });
 
-// FIXED: Added environment filtering to the average chart endpoint
+/* =========================
+   AVERAGE CHART DATA
+========================= */
+
 app.get("/metrics/chart/avg", (req, res) => {
   const { environment } = req.query;
+
   let query =
     "SELECT DATE(created_at) as date, AVG(fcp) as fcp, AVG(lcp) as lcp, AVG(tbt) as tbt FROM metrics";
+
   let params = [];
 
   if (environment) {
@@ -123,14 +215,22 @@ app.get("/metrics/chart/avg", (req, res) => {
 
   db.all(query, params, (err, rows) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({
+        error: err.message,
+      });
     }
+
     res.json(rows);
   });
 });
 
+/* =========================
+   ALERTS ENDPOINT
+========================= */
+
 app.get("/metrics/alerts", (req, res) => {
   const { environment } = req.query;
+
   let query = "SELECT * FROM metrics";
   let params = [];
 
@@ -140,22 +240,32 @@ app.get("/metrics/alerts", (req, res) => {
   }
 
   query += " ORDER BY created_at DESC";
+
   db.all(query, params, (err, rows) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({
+        error: err.message,
+      });
     }
+
     const results = rows.map((row) => ({
       ...row,
       alerts: checkPerformance(row),
     }));
+
     res.json(results);
   });
 });
 
-// FIXED: Added environment filtering to the structured chart endpoint
+/* =========================
+   STRUCTURED CHART DATA
+========================= */
+
 app.get("/metrics/chart/structured", (req, res) => {
   const { environment } = req.query;
+
   let query = "SELECT DATE(created_at) as date, fcp, lcp, tbt FROM metrics";
+
   let params = [];
 
   if (environment) {
@@ -163,10 +273,15 @@ app.get("/metrics/chart/structured", (req, res) => {
     params.push(environment);
   }
 
-  query += " ORDER BY created_at ASC";
+  query += " ORDER BY created_at ASC LIMIT 50";
 
   db.all(query, params, (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) {
+      return res.status(500).json({
+        error: err.message,
+      });
+    }
+
     res.json({
       labels: rows.map((r) => r.date),
       fcp: rows.map((r) => r.fcp),
@@ -176,8 +291,13 @@ app.get("/metrics/chart/structured", (req, res) => {
   });
 });
 
+/* =========================
+   INSERT METRICS
+========================= */
+
 app.post("/metrics", (req, res) => {
   console.log("Incoming data:", req.body);
+
   const { commit_hash, branch, environment, fcp, lcp, tbt } = req.body;
 
   if (
@@ -188,7 +308,9 @@ app.post("/metrics", (req, res) => {
     lcp == null ||
     tbt == null
   ) {
-    return res.status(400).json({ error: "Missing required fields" });
+    return res.status(400).json({
+      error: "Missing required fields",
+    });
   }
 
   if (
@@ -196,11 +318,20 @@ app.post("/metrics", (req, res) => {
     typeof lcp !== "number" ||
     typeof tbt !== "number"
   ) {
-    return res.status(400).json({ error: "Metrics must be numbers" });
+    return res.status(400).json({
+      error: "Metrics must be numbers",
+    });
+  }
+
+  if (fcp < 0 || lcp < 0 || tbt < 0) {
+    return res.status(400).json({
+      error: "Metrics cannot be negative",
+    });
   }
 
   const query = `
-    INSERT INTO metrics (commit_hash, branch, environment, fcp, lcp, tbt)
+    INSERT OR IGNORE INTO metrics
+    (commit_hash, branch, environment, fcp, lcp, tbt)
     VALUES (?, ?, ?, ?, ?, ?)
   `;
 
@@ -209,23 +340,24 @@ app.post("/metrics", (req, res) => {
     [commit_hash, branch, environment, fcp, lcp, tbt],
     function (err) {
       if (err) {
-        res.status(500).json({ error: err.message });
-      } else {
-        res.json({ id: this.lastID });
+        return res.status(500).json({
+          error: err.message,
+        });
       }
+
+      res.json({
+        id: this.lastID,
+      });
     },
   );
 });
 
-function checkPerformance(metrics) {
-  const alerts = [];
-  if (metrics.lcp >= 4) alerts.push("LCP is too high (slow loading)");
-  if (metrics.fcp >= 3.0) alerts.push("FCP is slower than expected");
-  if (metrics.tbt >= 500) alerts.push("TBT indicates blocking issues");
-  return alerts;
-}
+/* =========================
+   START SERVER
+========================= */
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+  console.log(`Server running on port ${PORT}`);
 });
