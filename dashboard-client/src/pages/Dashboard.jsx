@@ -40,7 +40,7 @@ const Dashboard = () => {
 
       setIsHeavyContentLoaded(true);
 
-    }, 1500);
+    }, 2500); // 2.5 seconds to ensure it triggers LCP
 
 
 
