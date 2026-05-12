@@ -7,22 +7,29 @@ const Dashboard = () => {
   const [latestMetrics, setLatestMetrics] = useState(null);
   const [trends, setTrends] = useState(null);
   const [activeAlerts, setActiveAlerts] = useState([]);
-  
-  // ADDED: Environment State for the dropdown filter
   const [selectedEnv, setSelectedEnv] = useState('production');
+  
+  // ADDED: State to control the artificial delay
+  const [isHeavyContentLoaded, setIsHeavyContentLoaded] = useState(false);
 
-  // Trigger data load whenever the environment changes
   useEffect(() => {
     loadData();
+
+    // ADDED: Force the browser to wait 1.5 seconds before rendering the heavy stuff
+    setIsHeavyContentLoaded(false);
+    const timer = setTimeout(() => {
+      setIsHeavyContentLoaded(true);
+    }, 1500);
+
+    return () => clearTimeout(timer);
   }, [selectedEnv]);
 
   const loadData = async () => {
-    // Pass the selected environment to all API calls
     const data = await getMetrics(selectedEnv);
     if (data && data.length > 0) {
       setLatestMetrics(data[0]);
     } else {
-      setLatestMetrics(null); // Clear data if empty
+      setLatestMetrics(null); 
     }
     
     const trendData = await getTrendAnalysis(selectedEnv);
@@ -80,7 +87,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       
-      {/* HEADER SECTION */}
+      {/* HEADER SECTION (FCP TRIGGER - Paints Instantly) */}
       <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div className="header-left">
           <h1>CI/CD Telemetry Hub</h1>
@@ -88,8 +95,6 @@ const Dashboard = () => {
         </div>
 
         <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            
-            {/* ENVIRONMENT DROPDOWN FILTER */}
             <select 
               value={selectedEnv} 
               onChange={(e) => setSelectedEnv(e.target.value)}
@@ -100,7 +105,6 @@ const Dashboard = () => {
               <option value="development">Development</option>
             </select>
 
-            {/* DYNAMIC STATUS BADGE */}
             <div style={{ 
               backgroundColor: status.bg, 
               color: status.color, 
@@ -135,10 +139,8 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* CARDS GRID */}
+      {/* CARDS GRID (FCP TRIGGER - Paints Instantly) */}
       <div className="cards-grid">
-        
-        {/* ENVIRONMENT CARD */}
         <div className="card env" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
           <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Active Environment</div>
           <div className="card-content" style={{ display: 'flex', flexDirection: 'column', marginTop: '1rem' }}>
@@ -151,7 +153,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* FCP CARD */}
         <div className="card fcp" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
           <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>First Contentful Paint</div>
           <div className="card-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1rem' }}>
@@ -163,7 +164,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* LCP CARD */}
         <div className="card lcp" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
           <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Largest Contentful Paint</div>
           <div className="card-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1rem' }}>
@@ -175,7 +175,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* TBT CARD */}
         <div className="card tbt" style={{ padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
           <div className="card-title" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Total Blocking Time</div>
           <div className="card-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1rem' }}>
@@ -186,26 +185,36 @@ const Dashboard = () => {
             <div className="subtext-right" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem' }}>Target: &lt;200ms</div>
           </div>
         </div>
-
       </div>
 
-      {/* DELIBERATE LCP INJECTION: Massive 4K image to delay the Largest Contentful Paint score */}
-      <div style={{ marginTop: '1.5rem', width: '100%', height: '180px', overflow: 'hidden', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-        <img 
-          src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=100&w=4000&auto=format&fit=crop" 
-          alt="Heavy Payload Injector" 
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        />
+      {/* HEAVY CONTENT SECTION (LCP TRIGGER - Delayed by 1.5s) */}
+      <div style={{ marginTop: '1.5rem' }}>
+        {!isHeavyContentLoaded ? (
+          // The Skeleton Loader (Paints instantly)
+          <div style={{ width: '100%', height: '500px', backgroundColor: '#e2e8f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontWeight: 'bold', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>
+            Generating telemetry visualizations...
+          </div>
+        ) : (
+          // The Real Content (Paints after delay, forcing Lighthouse to mark this as LCP)
+          <>
+            <div style={{ width: '100%', height: '180px', overflow: 'hidden', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', marginBottom: '1.5rem' }}>
+              <img 
+                src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=100&w=4000&auto=format&fit=crop" 
+                alt="Heavy Payload Injector" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+
+            <div className="chart-section" style={{ padding: '1.5rem', backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+              <h3 className="chart-title" style={{ margin: '0 0 1.5rem 0', color: '#0f172a' }}>Performance Regression History</h3>
+              <div style={{ flex: 1, width: '100%' }}>
+                  <PerformanceDashboard environment={selectedEnv} />
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* CHART SECTION */}
-      <div className="chart-section" style={{ marginTop: '1.5rem', padding: '1.5rem', backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-        <h3 className="chart-title" style={{ margin: '0 0 1.5rem 0', color: '#0f172a' }}>Performance Regression History</h3>
-        <div style={{ flex: 1, width: '100%' }}>
-            {/* Pass the selected environment down to the chart component */}
-            <PerformanceDashboard environment={selectedEnv} />
-        </div>
-      </div>
     </div>
   );
 };
