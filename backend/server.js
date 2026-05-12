@@ -19,21 +19,19 @@ db.run(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
 function extractMetrics(filePath) {
   try {
     const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-
     return {
       fcp: Number(
         (data.audits["first-contentful-paint"].numericValue / 1000).toFixed(2),
       ),
-
       lcp: Number(
         (data.audits["largest-contentful-paint"].numericValue / 1000).toFixed(
           2,
         ),
       ),
-
       tbt: Number(data.audits["total-blocking-time"].numericValue.toFixed(2)),
     };
   } catch (error) {
@@ -41,6 +39,7 @@ function extractMetrics(filePath) {
     return null;
   }
 }
+
 app.get("/test-lighthouse", (req, res) => {
   const metrics = extractMetrics("./lighthouse.json");
   res.json(metrics);
@@ -54,16 +53,14 @@ function getStatus(metrics) {
   if (metrics.lcp >= 4 || metrics.fcp >= 3.0 || metrics.tbt >= 500) {
     return "Critical";
   }
-
   if (metrics.lcp >= 2.5 || metrics.fcp >= 2.0 || metrics.tbt >= 200) {
     return "Warning";
   }
-
   return "Excellent";
 }
+
 app.get("/metrics", (req, res) => {
   const { environment } = req.query;
-
   let query = "SELECT * FROM metrics";
   let params = [];
 
@@ -80,60 +77,60 @@ app.get("/metrics", (req, res) => {
     } else {
       const results = rows.map((row) => ({
         ...row,
-
         tbt: Math.round(row.tbt),
-
         status: getStatus(row),
-
         alerts: checkPerformance(row),
       }));
-
       res.json(results);
     }
   });
 });
+
+// FIXED: Added environment filtering to the chart endpoint
 app.get("/metrics/chart", (req, res) => {
-  const query = `
-    SELECT 
-      DATE(created_at) as date,
-      fcp,
-      lcp,
-      tbt
-    FROM metrics
-    ORDER BY created_at ASC
-  `;
+  const { environment } = req.query;
+  let query = "SELECT DATE(created_at) as date, fcp, lcp, tbt FROM metrics";
+  let params = [];
 
-  db.all(query, [], (err, rows) => {
+  if (environment) {
+    query += " WHERE environment = ?";
+    params.push(environment);
+  }
+
+  query += " ORDER BY created_at ASC";
+
+  db.all(query, params, (err, rows) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-
     res.json(rows);
   });
 });
+
+// FIXED: Added environment filtering to the average chart endpoint
 app.get("/metrics/chart/avg", (req, res) => {
-  const query = `
-    SELECT 
-      DATE(created_at) as date,
-      AVG(fcp) as fcp,
-      AVG(lcp) as lcp,
-      AVG(tbt) as tbt
-    FROM metrics
-    GROUP BY DATE(created_at)
-    ORDER BY date ASC
-  `;
+  const { environment } = req.query;
+  let query =
+    "SELECT DATE(created_at) as date, AVG(fcp) as fcp, AVG(lcp) as lcp, AVG(tbt) as tbt FROM metrics";
+  let params = [];
 
-  db.all(query, [], (err, rows) => {
+  if (environment) {
+    query += " WHERE environment = ?";
+    params.push(environment);
+  }
+
+  query += " GROUP BY DATE(created_at) ORDER BY date ASC";
+
+  db.all(query, params, (err, rows) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-
     res.json(rows);
   });
 });
+
 app.get("/metrics/alerts", (req, res) => {
   const { environment } = req.query;
-
   let query = "SELECT * FROM metrics";
   let params = [];
 
@@ -146,34 +143,40 @@ app.get("/metrics/alerts", (req, res) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-
     const results = rows.map((row) => ({
       ...row,
       alerts: checkPerformance(row),
     }));
-
     res.json(results);
   });
 });
-app.get("/metrics/chart/structured", (req, res) => {
-  db.all(
-    "SELECT DATE(created_at) as date, fcp, lcp, tbt FROM metrics ORDER BY created_at ASC",
-    [],
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
 
-      res.json({
-        labels: rows.map((r) => r.date),
-        fcp: rows.map((r) => r.fcp),
-        lcp: rows.map((r) => r.lcp),
-        tbt: rows.map((r) => r.tbt),
-      });
-    },
-  );
+// FIXED: Added environment filtering to the structured chart endpoint
+app.get("/metrics/chart/structured", (req, res) => {
+  const { environment } = req.query;
+  let query = "SELECT DATE(created_at) as date, fcp, lcp, tbt FROM metrics";
+  let params = [];
+
+  if (environment) {
+    query += " WHERE environment = ?";
+    params.push(environment);
+  }
+
+  query += " ORDER BY created_at ASC";
+
+  db.all(query, params, (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({
+      labels: rows.map((r) => r.date),
+      fcp: rows.map((r) => r.fcp),
+      lcp: rows.map((r) => r.lcp),
+      tbt: rows.map((r) => r.tbt),
+    });
+  });
 });
+
 app.post("/metrics", (req, res) => {
   console.log("Incoming data:", req.body);
-
   const { commit_hash, branch, environment, fcp, lcp, tbt } = req.body;
 
   if (
@@ -215,24 +218,13 @@ app.post("/metrics", (req, res) => {
 
 function checkPerformance(metrics) {
   const alerts = [];
-
-  if (metrics.lcp >= 4) {
-    alerts.push("LCP is too high (slow loading)");
-  }
-
-  if (metrics.fcp >= 3.0) {
-    alerts.push("FCP is slower than expected");
-  }
-
-  if (metrics.tbt >= 500) {
-    alerts.push("TBT indicates blocking issues");
-  }
-
+  if (metrics.lcp >= 4) alerts.push("LCP is too high (slow loading)");
+  if (metrics.fcp >= 3.0) alerts.push("FCP is slower than expected");
+  if (metrics.tbt >= 500) alerts.push("TBT indicates blocking issues");
   return alerts;
 }
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });
