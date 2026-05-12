@@ -139,6 +139,7 @@ app.get("/metrics/alerts", (req, res) => {
     params.push(environment);
   }
 
+  query += " ORDER BY created_at DESC";
   db.all(query, params, (err, rows) => {
     if (err) {
       return res.status(500).json({ error: err.message });
