@@ -250,6 +250,42 @@ const Dashboard = () => {
 
       </header>
 
+            
+<div
+  style={{
+    background: '#ffffff',
+    padding: '2rem',
+    borderRadius: '12px',
+    marginBottom: '2rem',
+    minHeight: '250px'
+  }}
+>
+  <h2
+    style={{
+      fontSize: '2.5rem',
+      marginBottom: '1rem',
+      color: '#0f172a'
+    }}
+  >
+    Enterprise CI/CD Performance Monitoring
+  </h2>
+
+  <p
+    style={{
+      fontSize: '1.2rem',
+      lineHeight: '1.8',
+      color: '#334155'
+    }}
+  >
+    Analyze Lighthouse telemetry, deployment
+    regressions, frontend rendering behavior,
+    Core Web Vitals performance, and runtime
+    stability across production, staging,
+    and development environments in real time.
+  </p>
+</div>
+
+
 
 
       {/* ACTIVE ALERTS PANEL */}
