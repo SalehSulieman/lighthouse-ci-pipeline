@@ -2,9 +2,9 @@ name: Lighthouse CI Pipeline
 
 on:
   push:
-    branches: [ main, staging, development ]
+    branches: [main, staging, development]
   pull_request:
-    branches: [ main, staging, development ]
+    branches: [main, staging, development]
 
 jobs:
   lighthouse-test:
@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install Lighthouse CLI
         run: npm install -g @lhci/cli
@@ -26,8 +26,8 @@ jobs:
       # ADDED: The Vercel Buffer
       - name: Wait for Vercel Deployment
         run: |
-          echo "Waiting 90 seconds for Vercel to finish deploying the new code..."
-          sleep 90
+          echo "Waiting 240 seconds for Vercel to finish deploying the new code..."
+          sleep 240
 
       - name: Run Lighthouse & Save JSON
         run: lhci collect --url="https://lighthouse-ci-pipeline.vercel.app"
@@ -75,7 +75,7 @@ jobs:
             echo "::error title=Performance Gate Failed::First Contentful Paint is too slow ($FCP s). Target is < 3.0 s."
             FAILED=1
           fi
-          
+
           if [ "$(awk "BEGIN {print ($TBT > 500)}")" -eq 1 ]; then
             echo "::error title=Performance Gate Failed::Total Blocking Time is too high ($TBT ms). Target is < 500 ms."
             FAILED=1
