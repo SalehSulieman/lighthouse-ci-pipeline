@@ -30,7 +30,7 @@ jobs:
           sleep 90
 
       - name: Run Lighthouse & Save JSON
-        run: lhci collect --url="https://ppv.to"
+        run: lhci collect --url="https://lighthouse-ci-pipeline.vercel.app/dashboard"
 
       - name: Extract Data, Send to Backend, and Enforce Budgets
         run: |
