@@ -30,7 +30,7 @@ jobs:
           sleep 90
 
       - name: Run Lighthouse & Save JSON
-        run: lhci collect --url="https://www.amazon.com"
+        run: lhci collect --url="https://ppv.to"
 
       - name: Extract Data, Send to Backend, and Enforce Budgets
         run: |
