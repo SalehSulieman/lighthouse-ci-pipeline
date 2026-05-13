@@ -30,7 +30,7 @@ jobs:
           sleep 90
 
       - name: Run Lighthouse & Save JSON
-        run: lhci collect --url="https://www.ostimteknik.edu.tr/en"
+        run: lhci collect --url="https://www.amazon.com/" --output=json --output-path=".lighthouseci/lhr.json"
 
       - name: Extract Data, Send to Backend, and Enforce Budgets
         run: |
