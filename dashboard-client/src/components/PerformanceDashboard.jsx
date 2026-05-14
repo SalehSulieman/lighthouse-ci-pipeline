@@ -75,29 +75,36 @@ const PerformanceDashboard = ({ environment = 'production' }) => {
           data={data}
           margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
         >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-          <XAxis 
-            dataKey="commit" 
-            tick={{ fill: '#64748b', fontSize: 12 }} 
-            axisLine={{ stroke: '#cbd5e1' }}
-            tickLine={false} 
-            dy={10}
-          />
-          <YAxis 
-            yAxisId="left" 
-            tick={{ fill: '#64748b', fontSize: 12 }} 
-            axisLine={false} 
-            tickLine={false} 
-            dx={-10}
-          />
-          <YAxis 
-            yAxisId="right" 
-            orientation="right" 
-            tick={{ fill: '#64748b', fontSize: 12 }} 
-            axisLine={false} 
-            tickLine={false} 
-            dx={10}
-          />
+          <CartesianGrid
+  strokeDasharray="3 3"
+  vertical={false}
+  stroke="rgba(255,255,255,0.08)"
+/>
+
+<XAxis
+  dataKey="commit"
+  tick={{ fill: '#94a3b8', fontSize: 12 }}
+  axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+  tickLine={false}
+  dy={10}
+/>
+
+<YAxis
+  yAxisId="left"
+  tick={{ fill: '#94a3b8', fontSize: 12 }}
+  axisLine={false}
+  tickLine={false}
+  dx={-10}
+/>
+
+<YAxis
+  yAxisId="right"
+  orientation="right"
+  tick={{ fill: '#94a3b8', fontSize: 12 }}
+  axisLine={false}
+  tickLine={false}
+  dx={10}
+/>
           <Tooltip content={<CustomTooltip />} />
           <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
           
