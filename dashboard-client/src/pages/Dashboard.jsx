@@ -411,7 +411,36 @@ const Dashboard = () => {
 
             </div>
 
-
+{trends && trends.deltas && (
+  <div
+    style={{
+      background:
+        trends.deltas.lcp.isImprovement
+          ? 'rgba(34,197,94,0.12)'
+          : 'rgba(239,68,68,0.12)',
+      border: `1px solid ${
+        trends.deltas.lcp.isImprovement
+          ? 'rgba(34,197,94,0.3)'
+          : 'rgba(239,68,68,0.3)'
+      }`,
+      padding: '16px',
+      borderRadius: '12px',
+      marginBottom: '1.5rem',
+      color: trends.deltas.lcp.isImprovement
+        ? '#4ade80'
+        : '#f87171',
+      fontWeight: '600'
+    }}
+  >
+    {trends.deltas.lcp.isImprovement
+      ? `✅ LCP improved by ${Math.abs(
+          trends.deltas.lcp.percent
+        )}% compared to previous deployment`
+      : `⚠ LCP regressed by ${Math.abs(
+          trends.deltas.lcp.percent
+        )}% compared to previous deployment`}
+  </div>
+)}
 
             <div className="chart-section" >
 
