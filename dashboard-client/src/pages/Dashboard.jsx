@@ -413,7 +413,7 @@ const Dashboard = () => {
 
 
 
-            <div className="chart-section" style={{ padding: '1.5rem', backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+            <div className="chart-section" >
 
               <h3 className="chart-title" style={{ margin: '0 0 1.5rem 0', color: '#0f172a' }}>Performance Regression History</h3>
 
