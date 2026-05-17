@@ -397,19 +397,7 @@ const Dashboard = () => {
 
           <>
 
-            <div style={{ width: '100%', height: '180px', overflow: 'hidden', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', marginBottom: '1.5rem' }}>
 
-              <img 
-
-                src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=100&w=4000&auto=format&fit=crop" 
-
-                alt="Heavy Payload Injector" 
-
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-
-              />
-
-            </div>
 
 {trends && trends.deltas && (
   <div
