@@ -30,7 +30,7 @@ jobs:
           sleep 90
 
       - name: Run Lighthouse & Save JSON
-        run: lhci collect --url="https://amazon.com" --output=json --output-path=".lighthouseci/lhr.json"
+        run: lhci collect --url="https://facebook.com" --output=json --output-path=".lighthouseci/lhr.json"
 
       - name: Extract Data, Send to Backend, and Enforce Budgets
         run: |
